@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HabitForge — PWA</title>
+  <meta name="theme-color" content="#0E0F13">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="brand">
+        <img src="assets/hf-logo.svg" alt="HF" class="logo">
+        <span>HabitForge</span>
+      </div>
+      <nav class="top-actions">
+        <button id="shareDay" class="btn ghost" aria-label="Compartilhar progresso do dia">Compartilhar</button>
+        <button id="openSettings" class="btn ghost" aria-label="Configurações">⚙︎</button>
+      </nav>
+    </header>
+
+    <main class="content">
+      <section class="hero">
+        <div class="progress-ring" aria-label="Progresso do dia">
+          <svg viewBox="0 0 120 120">
+            <circle class="bg" cx="60" cy="60" r="52"></circle>
+            <circle class="fg" cx="60" cy="60" r="52" stroke-dasharray="326" stroke-dashoffset="326"></circle>
+          </svg>
+          <div class="progress-text">
+            <div id="progressPercent">0%</div>
+            <small>de hoje</small>
+          </div>
+        </div>
+        <div class="hero-info">
+          <h1>Hoje</h1>
+          <p id="streakSummary">Mantenha sua sequência.</p>
+          <div class="hero-cta">
+            <button id="addHabitBtn" class="btn primary">+ Novo hábito</button>
+            <button id="viewAchievements" class="btn">Conquistas</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="list-section">
+        <h2>Meus hábitos</h2>
+        <div id="habitList" class="habit-list"></div>
+      </section>
+
+      <section class="next-goal" id="nextGoalCard" hidden>
+        <h3>Próxima conquista</h3>
+        <p id="nextGoalText"></p>
+      </section>
+    </main>
+
+    <nav class="tabbar" role="tablist" aria-label="Navegação principal">
+      <button class="tab active" data-tab="home" aria-selected="true">Início</button>
+      <button class="tab" data-tab="achievements" aria-selected="false">Conquistas</button>
+      <button class="tab" data-tab="stats" aria-selected="false">Estatísticas</button>
+      <button class="tab" data-tab="profile" aria-selected="false">Perfil</button>
+    </nav>
+
+    <!-- Modal: Novo/Editar Hábito -->
+    <dialog id="habitModal">
+      <form method="dialog" id="habitForm" class="modal-card">
+        <header>
+          <h3 id="habitModalTitle">Novo hábito</h3>
+          <button class="icon-btn" value="cancel" aria-label="Fechar">✕</button>
+        </header>
+        <div class="grid">
+          <label>Nome
+            <input name="name" required maxlength="40" placeholder="Ex.: Meditar">
+          </label>
+          <label>Descrição
+            <input name="description" maxlength="80" placeholder="Opcional">
+          </label>
+          <label>Tipo
+            <select name="type">
+              <option value="do">Fazer</option>
+              <option value="no_do">Dias sem (ex.: fumar)</option>
+            </select>
+          </label>
+          <label>Frequência
+            <select name="frequency">
+              <option value="daily">Diária</option>
+              <option value="weekly">Semanal</option>
+              <option value="custom">Dias específicos</option>
+            </select>
+          </label>
+          <label>Ícone/Emoji
+            <input name="icon" maxlength="2" placeholder="😀">
+          </label>
+          <label>Cor
+            <input type="color" name="color" value="#7BE0B8">
+          </label>
+          <fieldset class="days">
+            <legend>Dias da semana</legend>
+            <label><input type="checkbox" name="days" value="1">Seg</label>
+            <label><input type="checkbox" name="days" value="2">Ter</label>
+            <label><input type="checkbox" name="days" value="3">Qua</label>
+            <label><input type="checkbox" name="days" value="4">Qui</label>
+            <label><input type="checkbox" name="days" value="5">Sex</label>
+            <label><input type="checkbox" name="days" value="6">Sáb</label>
+            <label><input type="checkbox" name="days" value="0">Dom</label>
+          </fieldset>
+        </div>
+        <menu>
+          <button class="btn ghost" value="cancel">Cancelar</button>
+          <button class="btn primary" id="saveHabitBtn" value="default">Salvar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <!-- Views (SPA) -->
+    <section id="view-achievements" class="view" hidden>
+      <div class="view-inner">
+        <h2>Conquistas</h2>
+        <div id="achievementGrid" class="achievements"></div>
+      </div>
+    </section>
+
+    <section id="view-stats" class="view" hidden>
+      <div class="view-inner">
+        <h2>Estatísticas</h2>
+        <p>Consistência e streaks por hábito (mock para preview).</p>
+        <div id="statsArea" class="stats"></div>
+      </div>
+    </section>
+
+    <section id="view-profile" class="view" hidden>
+      <div class="view-inner">
+        <h2>Perfil</h2>
+        <div class="profile-card">
+          <img src="assets/avatar.svg" class="avatar" alt="Avatar">
+          <div>
+            <strong id="profileName">Você</strong>
+            <div id="profileLevel">Nível 1</div>
+          </div>
+        </div>
+        <button id="resetData" class="btn danger">Resetar dados</button>
+      </div>
+    </section>
+
+    <canvas id="storyCanvas" width="1080" height="1920" style="display:none"></canvas>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>
